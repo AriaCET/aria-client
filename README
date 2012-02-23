@@ -1,0 +1,4 @@
+Asterisk Based Public Addressing System.
+
+An public addressing system based on the Asterisk VoIP network. Asterisk can be made to run as paging system,but this feature is not given much importance. The steps are very crude and the resulting system is painful for a user to use. 
+We are trying to streamline this process and is trying to provide a easy one-click aproach.
