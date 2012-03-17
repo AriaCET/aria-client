@@ -24,24 +24,25 @@ class MyAccountCallback(pjsua.AccountCallback):
 
 class MyCallCallback(pjsua.CallCallback):
 
-    def __init__(self, call=None):
+    def __init__(self,msgfn,stfn, call=None):
         pjsua.CallCallback.__init__(self, call)
+	self.msgfn=msgfn
+	self.statefn=stfn
 
     # Notification when call state has changed
     def on_state(self):
         #global current_call
-        print "Call with", self.call.info().remote_uri,
-        print "is", self.call.info().state_text,
-        print "last code =", self.call.info().last_code, 
-        print "(" + self.call.info().last_reason + ")"
+        print ("Call with"+ str(self.call.info().remote_uri)+"is ")
+        self.msgfn (str(self.call.info().state_text))
+        print ("last code ="+ str(self.call.info().last_code)) 
+        #self.msgfn ("(" + str(self.call.info().last_reason) + ")")
         
         if self.call.info().state == pjsua.CallState.DISCONNECTED:
-            current_call = None
+            self.statefn(0)
             try:
                  self.call.hangup()
             except pjsua.Error, e:
                  pass #print "Exception: "+ str(e)
-            print 'Current call is', current_call
             
 
     # Notification when call's media state has changed.
@@ -55,6 +56,19 @@ class MyCallCallback(pjsua.CallCallback):
         else:
             print "Media is inactive"
 
+def printL(str1):
+	print (str1)
+
+def end_call():
+    try:
+        current_call.hangup()
+    except pjsua.Error, e:
+        pass #print "Exception: "+ str(e)
+
+def statechange(t):
+    if t==0:
+        current_call = None
+    print 'Current call is', current_call
 
 class Phone():
     def __init__(self,port=0, bound_addr='', public_addr='',Sound_rate=44100):
@@ -79,47 +93,51 @@ class Phone():
             print "Exception: " + str(e)
             lib.destroy()
 
-    def printstatus(self):
+    def printstatus(self,meth):
         my_sip_uri = "sip:" + self.transport.info().host + \
                  ":" + str(self.transport.info().port)
-        print "My SIP URI is", my_sip_uri
-        print("Registration status="+str(self.acc.info().reg_status)+"(" + self.acc.info().reg_reason+")")
-        print("Press ENTER")
-        sys.stdin.readline()
+        meth( "My SIP URI is"+ my_sip_uri)
+        meth("Registration status="+str(self.acc.info().reg_status)+"(" + self.acc.info().reg_reason+")")
+        #meth("Press ENTER")
+        #sys.stdin.readline()
+
     def destroy(self):
-	global current_call
+	self.acc.set_registration(False)
+        global current_call
+        self.printstatus(printL)
         self.acc.delete()
         del current_call   ##############
         self.lib.destroy()
-        self.lib = None
-    def call(self,phoneno,domain=''):
+        del self.lib
+
+    def call(self,phoneno,domain='',msgfn=printL,stfn=statechange):
         try:
             if domain=='':
                 domain=self.domain
             uri="<sip:"+str(phoneno)+"@"+domain+">"
             print "Making call to", uri
-            self.my_cb = MyCallCallback();
+            self.my_cb = MyCallCallback(msgfn,stfn);
             current_call=self.acc.make_call(uri,cb=self.my_cb)
             return current_call
         except pjsua.Error, e:
             print "Exception: "+ str(e)
             return
     def __del__(self):
-        self.destroy()
-	super.__del__()
+	try:
+        	self.destroy()
+		super.__del__()
+	except:
+		pass
 
-def end_call():
-    try:
-        current_call.hangup()
-    except pjsua.Error, e:
-        pass #print "Exception: "+ str(e)
+
+
 
 
 if __name__ == "__main__":
     current_call=None
     ph=Phone(5080)     
     ph.register("127.0.0.1:5060","blaine")
-    ph.printstatus()
+    ph.printstatus(printL)
     current_call=ph.call("1000")
     while raw_input('press q to quit')!='q':
         pass

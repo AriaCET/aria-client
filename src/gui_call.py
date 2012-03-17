@@ -3,15 +3,18 @@
 # -*- coding: utf-8 -*-
 
 from PyQt4 import QtCore, QtGui
+from phone import *
+
 
 class Aria_Call(object):
 	def __init__(self,argv=''):
 		app = QtGui.QApplication(argv)
 		self.win = QtGui.QMainWindow()
 		self.setup_ui()
+		self.state=False;
 		self.win.show()
+		self.phone_setup()
 		sys.exit(app.exec_())
-
 	def setup_ui(self):
 		self.setup()
 		self.win.setWindowTitle("ARIA Calling")
@@ -40,15 +43,6 @@ class Aria_Call(object):
 
 		self.BtnLayout = QtGui.QHBoxLayout()
 
-		self.cancelBtn = QtGui.QPushButton(self.centralwidget)
-		sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Minimum)
-		sizePolicy.setHorizontalStretch(0)
-		sizePolicy.setVerticalStretch(0)
-		sizePolicy.setHeightForWidth(self.cancelBtn.sizePolicy().hasHeightForWidth())
-
-		self.cancelBtn.setSizePolicy(sizePolicy)
-
-		self.BtnLayout.addWidget(self.cancelBtn)
 
 		self.callBtn = QtGui.QPushButton(self.centralwidget)
 		sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
@@ -71,22 +65,55 @@ class Aria_Call(object):
 
 		
 		self.PhoneLabel.setText("Phone No:")
-		self.cancelBtn.setText("Cancel")
 		self.callBtn.setText("Call")
 		self.menuFile.setTitle("File")
 		self.actionRegister.setText("Register")
 
 	def setactions(self):
 		
-		QtCore.QObject.connect(self.cancelBtn, QtCore.SIGNAL("clicked()"), self.win.close)
-		#QtCore.QObject.connect(self.callBtn, QtCore.SIGNAL("clicked()"),call)
+		QtCore.QObject.connect(self.callBtn, QtCore.SIGNAL("clicked()"),self.click)
 		#QtCore.QObject.connect(self.actionRegister, QtCore.SIGNAL("triggered()"),register)
 		QtCore.QMetaObject.connectSlotsByName(self.win)
 
-	def setmsg(msgstr=""):
+	def setmsg(self,msgstr=""):
 		self.MsgArea.setText(msgstr)
+	def click(self):
+		self.statusbar.clearMessage()
+		if(self.state):
+			self.endcall(1)
+		else:
+			t=str(self.PhoneNo.text())
+			if t.isdigit():
+				self.state=True
+				print t
+				current_call = self.ph.call(t,msgfn=self.setmsg,stfn=self.endcall)
+				self.callBtn.setText("End")
+			else:
+				return
+
+	def __del__(self):
+		self.ph.destroy()
+		pass
+	def phone_setup(self):
+		self.ph=Phone(5080)     
+	    	self.ph.register("127.0.0.1:5060","blaine")
+		self.ph.printstatus(self.statusbar.showMessage)
+
+	def endcall(self,t):
+		if t==0:
+			current_call = None
+			self.state=False
+			self.callBtn.setText("Call")
+		if t==1:
+			try:
+				current_call.hangup()
+			except pjsua.Error, e:
+				pass #print "Exception: "+ str(e)
+			except NameError:
+				pass
+
 
 if __name__ == "__main__":
 	import sys
+	current_call=None
 	ui=Aria_Call(sys.argv)
-
