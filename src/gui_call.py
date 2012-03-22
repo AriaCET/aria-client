@@ -69,7 +69,6 @@ class Aria_Call(object):
 		self.actionRegister.setText("Unregister")
 
 	def setactions(self):
-		
 		QtCore.QObject.connect(self.callBtn, QtCore.SIGNAL("clicked()"),self.click)
 		QtCore.QObject.connect(self.actionRegister, QtCore.SIGNAL("triggered()"),self.unregister)
 		QtCore.QMetaObject.connectSlotsByName(self.win)
@@ -79,6 +78,7 @@ class Aria_Call(object):
 	def click(self):
 		self.statusbar.clearMessage()
 		if(self.state):
+			print "test!"
 			self.endcall(1)
 		else:
 			t=str(self.PhoneNo.text())
@@ -86,8 +86,12 @@ class Aria_Call(object):
 				self.state=True
 				print t
 				current_call = self.ph.call(t,msgfn=self.setmsg,stfn=self.endcall)
+				calllist.append(current_call)
+				print ("call!:"+str(current_call))
 				self.callBtn.setText("End")
+				self.PhoneNo.setReadOnly(True)
 			else:
+				self.PhoneNo.setText("")
 				return
 
 	def unregister(self):
@@ -100,22 +104,29 @@ class Aria_Call(object):
 		self.ph.printstatus(self.statusbar.showMessage)
 
 	def endcall(self,t):
+		self.PhoneNo.setReadOnly(False)
+		self.PhoneNo.setText("")
 		if t==0:
 			try:
 				current_call=calllist.pop()
 				current_call = None
 			except IndexError:
 				pass
-				self.state=False
-				self.callBtn.setText("Call")
+			self.state=False
+			self.callBtn.setText("Call")
 		if t==1:
 			try:
+				
 				current_call=calllist.pop()
+				print ("call:"+str(current_call))
 				current_call.hangup()
+				#self.statusbar.showMessage(str(current_call.info().state_text),1000)
 			except pjsua.Error, e:
-				pass 
-			except IndexError:
-				pass
+				print ("e"+str(e))
+				#pass 
+			except IndexError ,e:
+				print ("e"+str(e))
+				#pass
 
 
 if __name__ == "__main__":
@@ -124,8 +135,4 @@ if __name__ == "__main__":
 	app = QtGui.QApplication(sys.argv)
 	ui=Aria_Call()
 	QtCore.QObject.connect(app, QtCore.SIGNAL("lastWindowClosed()"),ui.unregister)
-	#app.connect(app, SIGNAL(),app, SLOT("quit()"))
-	#app.exec_loop()
-	app.exec_()
-#	ui.unregister()
-#	sys.exit()
+	sys.exit(app.exec_())
