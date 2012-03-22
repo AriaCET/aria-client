@@ -59,7 +59,7 @@ class MyCallCallback(pjsua.CallCallback):
 def printL(str1):
 	print (str1)
 
-def end_call():
+def end_call(current_call):
     try:
         current_call.hangup()
     except pjsua.Error, e:
@@ -91,7 +91,7 @@ class Phone():
             self.acc_cb.wait()
         except pjsua.Error, e:
             print "Exception: " + str(e)
-            lib.destroy()
+            self.lib.destroy()
 
     def printstatus(self,meth):
         my_sip_uri = "sip:" + self.transport.info().host + \
@@ -103,12 +103,9 @@ class Phone():
 
     def destroy(self):
 	self.acc.set_registration(False)
-        global current_call
-        self.printstatus(printL)
-        self.acc.delete()
-        del current_call   ##############
         self.lib.destroy()
         del self.lib
+        print "end.............."
 
     def call(self,phoneno,domain='',msgfn=printL,stfn=statechange):
         try:
@@ -117,17 +114,16 @@ class Phone():
             uri="<sip:"+str(phoneno)+"@"+domain+">"
             print "Making call to", uri
             self.my_cb = MyCallCallback(msgfn,stfn);
+            lck = self.lib.auto_lock()   ###########################################
             current_call=self.acc.make_call(uri,cb=self.my_cb)
+            del lck  ######################################################
             return current_call
         except pjsua.Error, e:
             print "Exception: "+ str(e)
             return
     def __del__(self):
-	try:
-        	self.destroy()
-		super.__del__()
-	except:
-		pass
+        self.destroy()
+	super.__del__()
 
 
 
@@ -141,7 +137,7 @@ if __name__ == "__main__":
     current_call=ph.call("1000")
     while raw_input('press q to quit')!='q':
         pass
-    end_call()
+    end_call(current_call)
     #del current_call
     ph.destroy()
 

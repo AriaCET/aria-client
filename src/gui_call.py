@@ -3,18 +3,17 @@
 # -*- coding: utf-8 -*-
 
 from PyQt4 import QtCore, QtGui
+from PyQt4.QtCore import pyqtSignal
 from phone import *
 
 
 class Aria_Call(object):
-	def __init__(self,argv=''):
-		app = QtGui.QApplication(argv)
+	def __init__(self):
 		self.win = QtGui.QMainWindow()
 		self.setup_ui()
 		self.state=False;
 		self.win.show()
 		self.phone_setup()
-		sys.exit(app.exec_())
 	def setup_ui(self):
 		self.setup()
 		self.win.setWindowTitle("ARIA Calling")
@@ -67,12 +66,12 @@ class Aria_Call(object):
 		self.PhoneLabel.setText("Phone No:")
 		self.callBtn.setText("Call")
 		self.menuFile.setTitle("File")
-		self.actionRegister.setText("Register")
+		self.actionRegister.setText("Unregister")
 
 	def setactions(self):
 		
 		QtCore.QObject.connect(self.callBtn, QtCore.SIGNAL("clicked()"),self.click)
-		#QtCore.QObject.connect(self.actionRegister, QtCore.SIGNAL("triggered()"),register)
+		QtCore.QObject.connect(self.actionRegister, QtCore.SIGNAL("triggered()"),self.unregister)
 		QtCore.QMetaObject.connectSlotsByName(self.win)
 
 	def setmsg(self,msgstr=""):
@@ -91,9 +90,10 @@ class Aria_Call(object):
 			else:
 				return
 
-	def __del__(self):
+	def unregister(self):
 		self.ph.destroy()
-		pass
+		self.ph=None
+
 	def phone_setup(self):
 		self.ph=Phone(5080)     
 	    	self.ph.register("127.0.0.1:5060","blaine")
@@ -101,19 +101,31 @@ class Aria_Call(object):
 
 	def endcall(self,t):
 		if t==0:
-			current_call = None
-			self.state=False
-			self.callBtn.setText("Call")
+			try:
+				current_call=calllist.pop()
+				current_call = None
+			except IndexError:
+				pass
+				self.state=False
+				self.callBtn.setText("Call")
 		if t==1:
 			try:
+				current_call=calllist.pop()
 				current_call.hangup()
 			except pjsua.Error, e:
-				pass #print "Exception: "+ str(e)
-			except NameError:
+				pass 
+			except IndexError:
 				pass
 
 
 if __name__ == "__main__":
 	import sys
-	current_call=None
-	ui=Aria_Call(sys.argv)
+	calllist=list()
+	app = QtGui.QApplication(sys.argv)
+	ui=Aria_Call()
+	QtCore.QObject.connect(app, QtCore.SIGNAL("lastWindowClosed()"),ui.unregister)
+	#app.connect(app, SIGNAL(),app, SLOT("quit()"))
+	#app.exec_loop()
+	app.exec_()
+#	ui.unregister()
+#	sys.exit()
