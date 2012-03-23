@@ -78,21 +78,20 @@ class Aria_Call(object):
 	def click(self):
 		self.statusbar.clearMessage()
 		if(self.state):
-			print "test!"
 			self.endcall(1)
 		else:
 			t=str(self.PhoneNo.text())
 			if t.isdigit():
 				self.state=True
-				print t
-				current_call = self.ph.call(t,msgfn=self.setmsg,stfn=self.endcall)
+				current_call = self.ph.call(t,msgfn=self.setstatus,stfn=self.endcall)
 				calllist.append(current_call)
-				print ("call!:"+str(current_call))
 				self.callBtn.setText("End")
 				self.PhoneNo.setReadOnly(True)
 			else:
 				self.PhoneNo.setText("")
 				return
+	def setstatus(self,msg):
+		self.statusbar.showMessage(msg,10000)
 
 	def unregister(self):
 		self.ph.destroy()
@@ -101,7 +100,7 @@ class Aria_Call(object):
 	def phone_setup(self):
 		self.ph=Phone(5080)     
 	    	self.ph.register("127.0.0.1:5060","blaine")
-		self.ph.printstatus(self.statusbar.showMessage)
+		self.ph.printstatus(self.setstatus)
 
 	def endcall(self,t):
 		self.PhoneNo.setReadOnly(False)
@@ -118,7 +117,6 @@ class Aria_Call(object):
 			try:
 				
 				current_call=calllist.pop()
-				print ("call:"+str(current_call))
 				current_call.hangup()
 				#self.statusbar.showMessage(str(current_call.info().state_text),1000)
 			except pjsua.Error, e:
