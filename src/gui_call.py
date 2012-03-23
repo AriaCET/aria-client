@@ -83,7 +83,7 @@ class Aria_Call(object):
 			t=str(self.PhoneNo.text())
 			if t.isdigit():
 				self.state=True
-				current_call = self.ph.call(t,msgfn=self.setstatus,stfn=self.endcall)
+				current_call = self.ph.call(t,msgfn=self.setmsg,stfn=self.endcall)
 				calllist.append(current_call)
 				self.callBtn.setText("End")
 				self.PhoneNo.setReadOnly(True)
@@ -91,7 +91,7 @@ class Aria_Call(object):
 				self.PhoneNo.setText("")
 				return
 	def setstatus(self,msg):
-		self.statusbar.showMessage(msg,10000)
+		self.statusbar.showMessage(msg)
 
 	def unregister(self):
 		self.ph.destroy()
@@ -106,13 +106,13 @@ class Aria_Call(object):
 		self.PhoneNo.setReadOnly(False)
 		self.PhoneNo.setText("")
 		if t==0:
+			self.state=False
+			self.callBtn.setText("Call")
 			try:
 				current_call=calllist.pop()
 				current_call = None
 			except IndexError:
 				pass
-			self.state=False
-			self.callBtn.setText("Call")
 		if t==1:
 			try:
 				
