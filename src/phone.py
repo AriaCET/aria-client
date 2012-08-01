@@ -69,6 +69,14 @@ def statechange(t):
     if t==0:
         current_call = None
     print 'Current call is', current_call
+def getCallStatus(call):
+    try:
+        callInfo = call.info()
+        print (callInfo.state_text)
+        return callInfo.state
+    except pjsua.Error, e:
+        print ("NULL")
+        return 0
 
 class Phone():
     def __init__(self,port=0, bound_addr='', public_addr='',Sound_rate=44100):
@@ -77,7 +85,8 @@ class Phone():
         self.media_cfg = pjsua.MediaConfig()
         self.media_cfg.clock_rate = self.Sound_rate
         #self.media_cfg.no_vad = True
-        self.lib.init(media_cfg=self.media_cfg)#pass log_cfg = pjsua.LogConfig(level=4, callback=log_cb)) for debuging
+        self.lib.init(media_cfg=self.media_cfg)
+        #pass log_cfg = pjsua.LogConfig(level=4, callback=log_cb)) for debuging
 	self.TransConfig=pjsua.TransportConfig(port,bound_addr,public_addr)
         self.transport=self.lib.create_transport(pjsua.TransportType.UDP,self.TransConfig)
         self.lib.start()
@@ -124,21 +133,4 @@ class Phone():
     def __del__(self):
         self.destroy()
 	super.__del__()
-
-
-
-
-
-if __name__ == "__main__":
-    current_call=None
-    ph=Phone(5080)     
-    ph.register("127.0.0.1:5060","blaine")
-    ph.printstatus(printL)
-    current_call=ph.call("1000")
-    while raw_input('press q to quit')!='q':
-        pass
-    end_call(current_call)
-    #del current_call
-    ph.destroy()
-
 

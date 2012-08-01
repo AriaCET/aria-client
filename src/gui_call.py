@@ -99,7 +99,7 @@ class Aria_Call(object):
 
 	def phone_setup(self):
 		self.ph=Phone(5080)     
-	    	self.ph.register("127.0.0.1:5060","blaine")
+	    	self.ph.register("127.0.0.1:5060","billy")
 		self.ph.printstatus(self.setstatus)
 
 	def endcall(self,t):
@@ -110,13 +110,14 @@ class Aria_Call(object):
 			self.callBtn.setText("Call")
 			try:
 				current_call=calllist.pop()
+				print(current_call.is_valid())
 				current_call = None
 			except IndexError:
 				pass
 		if t==1:
 			try:
-				
 				current_call=calllist.pop()
+				print(current_call.is_valid())
 				current_call.hangup()
 				#self.statusbar.showMessage(str(current_call.info().state_text),1000)
 			except pjsua.Error, e:
