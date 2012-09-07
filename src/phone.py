@@ -1,9 +1,15 @@
+#File:phone.py
+#Implementing functions for phone.
 import sys
 import pjsua
 import threading
 
 
 class PhoneAccountCallback(pjsua.AccountCallback):
+    """
+    Class that Set Account setting :
+        on_incoming_call:-reject
+    """
     sem = None
     def __init__(self, account):
         pjsua.AccountCallback.__init__(self, account)
@@ -20,8 +26,10 @@ class PhoneAccountCallback(pjsua.AccountCallback):
     def on_incoming_call(self, call):
         call.hangup(501, "Sorry, not ready to accept calls yet")
 
-class PhoneCall(pjsua.CallCallback):
-
+class PhoneCallCallback(pjsua.CallCallback):
+    """
+    Class to receive event notification from Call objects. 
+    """
     def __init__(self,msgfn,stfn, call=None):
         pjsua.CallCallback.__init__(self, call)
         self.msgfn = msgfn
@@ -29,7 +37,9 @@ class PhoneCall(pjsua.CallCallback):
 
     # Notification when call state has changed
     def on_state(self):
-        #global current_call
+        """
+        Called when state of a 'call' changed
+        """
         debugMessage ("Call with"+ str(self.call.info().remote_uri)+"is ")
         self.msgfn (str(self.call.info().state_text))
         debugMessage ("last code ="+ str(self.call.info().last_code)) 
@@ -42,6 +52,10 @@ class PhoneCall(pjsua.CallCallback):
             
     # Notification when call's media state has changed.
     def on_media_state(self):
+        """
+        set function to be called when the call is ready
+        (media is active)
+        """
         if self.call.info().media_state == pjsua.MediaState.ACTIVE:
             # Connect the call to sound device
             call_slot = self.call.info().conf_slot
@@ -53,9 +67,16 @@ class PhoneCall(pjsua.CallCallback):
 
 
 def debugMessage(message):
+    """
+    for debuging
+    TODO: print messages to a log file
+    """
     print (str(message))
 
 def end_call(current_call):
+    """
+    To end a call 
+    """
     try:
         current_call.hangup()
     except pjsua.Error, e:
@@ -102,12 +123,13 @@ class Phone():
 
     def printstatus(self,meth=debugMessage):
         my_sip_uri = "sip:" + self.transport.info().host + \
-                 ":" + str(self.transport.info().port)
+            ":" + str(self.transport.info().port)
         meth( "My SIP URI is"+ my_sip_uri)
-        meth("Registration status="+str(self.account.info().reg_status)+"(" + self.account.info().reg_reason+")")
+        meth("Registration status ="+str(self.account.info().reg_status)+ \
+            "(" + self.account.info().reg_reason+")")
 
     def destroy(self):
-	self.account.set_registration(False)
+        self.account.set_registration(False)
         self.lib.destroy()
         del self.lib
         debugMessage ("Bye..............")
@@ -118,9 +140,9 @@ class Phone():
                 domain=self.domain
             uri="<sip:"+str(phoneno)+"@"+domain+">"
             debugMessage ("Making call to"+ str(uri))
-            self.my_cb = PhoneCall(msgfn,stfn);
-            lck = self.lib.auto_lock()   
-            current_call=self.account.make_call(uri,cb=self.my_cb)
+            self.callbackSetting = PhoneCallCallback(msgfn,stfn);
+            lck = self.lib.auto_lock()
+            current_call=self.account.make_call(uri,cb=self.callbackSetting)
             del lck
             return current_call
         except pjsua.Error, e:
