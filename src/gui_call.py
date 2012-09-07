@@ -2,8 +2,8 @@
 #-*-python-2.7-
 # -*- coding: utf-8 -*-
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import pyqtSignal
+from PySide import QtCore, QtGui
+from PySide.QtCore import Signal
 from phone import *
 
 
@@ -94,12 +94,13 @@ class Aria_Call(object):
 		self.statusbar.showMessage(msg)
 
 	def unregister(self):
+		print ("Bye..")
 		self.ph.destroy()
 		self.ph=None
 
 	def phone_setup(self):
-		self.ph=Phone(5080)     
-	    	self.ph.register("127.0.0.1:5060","billy")
+		self.ph=Phone(5080)
+		self.ph.register("127.0.0.1:5060","blaine")
 		self.ph.printstatus(self.setstatus)
 
 	def endcall(self,t):
