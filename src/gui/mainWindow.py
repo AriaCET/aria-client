@@ -2,6 +2,8 @@
 
 
 from PySide import QtCore, QtGui
+import auth
+from login import Login
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -9,8 +11,18 @@ class MainWindow(QtGui.QMainWindow):
         super(MainWindow, self).__init__()
         self.speakerBtns = []
         self.selectedSpeaker = None
-        self.setupUi()
-        self.show()
+
+        login = Login(self)
+        QtCore.QObject.connect(login, QtCore.SIGNAL("accepted()"),self.loginSucess)
+        QtCore.QObject.connect(login, QtCore.SIGNAL("reject()"),self.loginFailed)
+
+    def loginSucess(self):
+        self.setupUi()  
+        self.show() 
+
+    def loginFailed(self):
+        print "Bye...."
+        self.close()       
 
     def setupUi(self):
         self.setWindowTitle("ARIA")
@@ -28,11 +40,13 @@ class MainWindow(QtGui.QMainWindow):
         self.scrollArea = QtGui.QScrollArea(self.centralwidget)
         self.scrollArea.setWidgetResizable(False)
         self.scrollArea.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.scrollArea.setLayout(QtGui.QGridLayout())
         
         self.scrollAreaWidgetContents = QtGui.QWidget()
         self.scrollAreaWidgetContents.adjustSize()
 
-        self.speakerBtnLayout = QtGui.QVBoxLayout(self.scrollAreaWidgetContents)
+        #self.speakerBtnLayout = QtGui.QVBoxLayout(self.scrollAreaWidgetContents)
+        self.speakerBtnLayout = QtGui.QGridLayout(self.scrollAreaWidgetContents)
         #set spaker buttons        
         self.setSpeakerBtns(self.speakerBtnLayout)
 
@@ -77,14 +91,14 @@ class MainWindow(QtGui.QMainWindow):
 
     def setSpeakerBtns(self,layout):
         #size = QtCore.QSize(30,20)
-        for i in range(0,10):
-            pushButton = QtGui.QPushButton("Name"+str(i),self.scrollAreaWidgetContents)
+        for i in range(15):
+            pushButton = QtGui.QPushButton("\nName"+str(i)+"\n",self.scrollAreaWidgetContents)
             pushButton.setAutoFillBackground(False)
             pushButton.setCheckable(True)
-            pushButton.clicked.connect(self.speakerSelect)
             #pushButton.setAutoExclusive(True)
             #pushButton.resize(size)
-            layout.addWidget(pushButton)
+            pushButton.clicked.connect(self.speakerSelect)
+            layout.addWidget(pushButton, i / 3, i % 3)
             self.speakerBtns.append(pushButton)
 
     def speakerSelect(self):

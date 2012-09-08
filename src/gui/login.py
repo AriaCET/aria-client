@@ -3,9 +3,10 @@
 from PySide import QtCore, QtGui
 
 class Login(QtGui.QDialog):
-    def __init__(self):
-        super(Login, self).__init__()
+    def __init__(self,parent = None):
+        QtGui.QDialog.__init__(self, parent, QtCore.Qt.WindowStaysOnTopHint)
         self.setupUi()
+        self.show()
 
     def setupUi(self):
         
@@ -43,6 +44,7 @@ class Login(QtGui.QDialog):
         
         self.cancelButton = QtGui.QPushButton("Cancel",self.buttonSpliter)
         self.okButton = QtGui.QPushButton("Ok",self.buttonSpliter)
+        self.okButton.setDefault(True)
         self.okButton.setEnabled(True)
         
         self.buttonLayout.addWidget(self.buttonSpliter)
@@ -60,11 +62,11 @@ class Login(QtGui.QDialog):
         print password
         if password == "test":
             self.accept()
+        self.passBox.setText("")      
 
 
 if __name__ == "__main__":
     import sys
     app = QtGui.QApplication(sys.argv)
     ui = Login()
-    ui.show()
     sys.exit(app.exec_())
