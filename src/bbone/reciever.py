@@ -1,4 +1,7 @@
 #!/usr/bin/env python2
+# This is just my own version of :http://trac.pjsip.org/repos/browser/pjproject/trunk/pjsip-apps/src/python/samples/call.py
+# Autoanswer any call.
+
 import config
 import sys
 import pjsua as pj
