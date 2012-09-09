@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-
+#-*-python-2.7-
 
 from PySide import QtCore, QtGui
-import auth
 from login import Login
+import config as config
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -11,13 +11,17 @@ class MainWindow(QtGui.QMainWindow):
         super(MainWindow, self).__init__()
         self.speakerBtns = []
         self.selectedSpeaker = None
-
+        config.init()
         login = Login(self)
         QtCore.QObject.connect(login, QtCore.SIGNAL("accepted()"),self.loginSucess)
         QtCore.QObject.connect(login, QtCore.SIGNAL("reject()"),self.loginFailed)
 
     def loginSucess(self):
-        self.setupUi()  
+        self.setupUi()
+        print config.domain
+        print config.username
+        print config.password
+        print config.bindport  
         self.show() 
 
     def loginFailed(self):
@@ -91,14 +95,17 @@ class MainWindow(QtGui.QMainWindow):
 
     def setSpeakerBtns(self,layout):
         #size = QtCore.QSize(30,20)
-        for i in range(15):
-            pushButton = QtGui.QPushButton("\nName"+str(i)+"\n",self.scrollAreaWidgetContents)
+        i = 0
+        for speaker in config.getSpeakers():
+            pushButton = Speaker(speaker['Name'],speaker['Number'],self.layout)
+            #QtGui.QPushButton("\nName"+str(i)+"\n",self.scrollAreaWidgetContents)
             pushButton.setAutoFillBackground(False)
             pushButton.setCheckable(True)
             #pushButton.setAutoExclusive(True)
             #pushButton.resize(size)
             pushButton.clicked.connect(self.speakerSelect)
             layout.addWidget(pushButton, i / 3, i % 3)
+            i = i + 1
             self.speakerBtns.append(pushButton)
 
     def speakerSelect(self):
@@ -110,7 +117,7 @@ class MainWindow(QtGui.QMainWindow):
             self.okBtn.setEnabled(True)
             self.cancelBtn.setEnabled(True)
             self.statusbar.message("Selected Speaker :"
-                +str(btn.text()),0)
+                +str(btn) ,0)
         else:
             self.selectedSpeaker = None
             self.okBtn.setEnabled(False)
@@ -123,11 +130,17 @@ class MainWindow(QtGui.QMainWindow):
             self.selectedSpeaker = None
             self.okBtn.setEnabled(False)
             self.cancelBtn.setEnabled(False)
+            self.statusbar.clear()
+        if self.cancelBtn.text() == "End":
+            self.okBtn.setEnabled(True)
+            self.cancelBtn.setText("Cancel")
+            self.scrollArea.setEnabled(True)
 
     def okAct(self):
-        index = self.speakerBtns.index(self.selectedSpeaker)
-        print index
+        number = self.selectedSpeaker.getNumber()
+        print number
         #TODO Call
+        self.scrollArea.setEnabled(False)
         self.okBtn.setEnabled(False)
         self.cancelBtn.setText("End")
 
@@ -137,9 +150,20 @@ class MainWindow(QtGui.QMainWindow):
             "<p>An public addressing system based on the Asterisk VoIP network</p>")
 
 
+class Speaker(QtGui.QPushButton):
+    """ Speaker"""
+    def __init__(self, name,number,parent=None):
+        super(Speaker,self).__init__()
+        self.setText("\n"+name+"\n")
+        self.__name__ = name
+        self.__number__ = number
+    
+    def __str__(self):
+        return (str(self.__name__) + 
+            " ["+str(self.__number__)+"]")
 
-if __name__ == "__main__":
-    import sys
-    app = QtGui.QApplication(sys.argv)
-    ui = MainWindow()
-    sys.exit(app.exec_())
+    def getNumber(self):
+        return self.__number__
+
+    def getName(self):
+        return self.__name__

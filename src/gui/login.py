@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
+#-*-python-2.7-
 
 from PySide import QtCore, QtGui
+import auth
 
 class Login(QtGui.QDialog):
     def __init__(self,parent = None):
@@ -60,13 +62,6 @@ class Login(QtGui.QDialog):
     def login(self):
         password = self.passBox.text()
         print password
-        if password == "test":
+        if auth.isvalid(password) :
             self.accept()
-        self.passBox.setText("")      
-
-
-if __name__ == "__main__":
-    import sys
-    app = QtGui.QApplication(sys.argv)
-    ui = Login()
-    sys.exit(app.exec_())
+        self.passBox.setText("")
