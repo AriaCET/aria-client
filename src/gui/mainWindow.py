@@ -4,12 +4,13 @@
 from PySide import QtCore, QtGui
 from login import Login
 import config as config
-
+import pjsua
+from phone import Phone
 
 class MainWindow(QtGui.QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
-        self.speakerBtns = []
+        self.speakerBtns = list()
         self.selectedSpeaker = None
         config.init()
         login = Login(self)
@@ -18,11 +19,11 @@ class MainWindow(QtGui.QMainWindow):
 
     def loginSucess(self):
         self.setupUi()
-        print config.domain
-        print config.username
-        print config.password
-        print config.bindport  
-        self.show() 
+        self.setEnabled(False)
+        self.show()
+        if self.phone_setup() :
+            self.calllist = list()
+            self.setEnabled(True)   
 
     def loginFailed(self):
         print "Bye...."
@@ -108,7 +109,7 @@ class MainWindow(QtGui.QMainWindow):
             i = i + 1
             self.speakerBtns.append(pushButton)
 
-    def speakerSelect(self):
+    def speakerSelect(self,clear=True):
         btn = self.sender()
         if self.selectedSpeaker != None:
             self.selectedSpeaker.setChecked(False)
@@ -132,23 +133,70 @@ class MainWindow(QtGui.QMainWindow):
             self.cancelBtn.setEnabled(False)
             self.statusbar.clear()
         if self.cancelBtn.text() == "End":
-            self.okBtn.setEnabled(True)
-            self.cancelBtn.setText("Cancel")
-            self.scrollArea.setEnabled(True)
+            self.endcall(1)
+            #self.okBtn.setEnabled(True)
+            #self.cancelBtn.setText("Cancel")
+            #self.scrollArea.setEnabled(True)
 
     def okAct(self):
         number = self.selectedSpeaker.getNumber()
-        print number
+        #print number
         #TODO Call
         self.scrollArea.setEnabled(False)
         self.okBtn.setEnabled(False)
         self.cancelBtn.setText("End")
+        current_call = self.ph.call(number,msgfn=self.setmsg,stfn=self.endcall)
+        self.calllist.append(current_call)
 
     def about(self):
         QtGui.QMessageBox.about(self, "About ARIA",
             "<p><b>Asterisk RadIo Architecture</b></p>"
             "<p>An public addressing system based on the Asterisk VoIP network</p>")
 
+    def endcall(self,t):
+        if t==0:
+            try:
+                current_call=self.calllist.pop()
+                print(current_call.is_valid())
+                current_call = None
+            except IndexError:
+                pass
+        if t==1:
+            try:
+                current_call=self.calllist.pop()
+                print(current_call.is_valid())
+                current_call.hangup()
+                #self.statusbar.showMessage(str(current_call.info().state_text),1000)
+            except pjsua.Error, e:
+                print ("e"+str(e))
+                #pass 
+            except IndexError ,e:
+                print ("e"+str(e))
+                #pass
+        self.okBtn.setEnabled(True)
+        self.cancelBtn.setText("Cancel")
+        self.scrollArea.setEnabled(True)
+        #self.selectedSpeaker.click()
+        #self.statusbar.message("Disconnected",0)
+
+    def phone_setup(self):
+        print config.domain
+        print config.username
+        print config.password
+        print type(config.bindport)
+        self.ph = Phone(int(config.bindport))
+        status = self.ph.register(domain=config.domain,
+            username=config.username, password=config.password)
+        if status != 200: #200 is OK
+            errorBox = QtGui.QMessageBox.critical(self,"","Registation Failed")
+            self.close()
+            return False
+        else :
+            return True
+
+    def setmsg(self,message,time=1000):
+        self.statusbar.clear()
+        self.statusbar.message(message,time)
 
 class Speaker(QtGui.QPushButton):
     """ Speaker"""
