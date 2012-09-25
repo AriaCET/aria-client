@@ -75,6 +75,7 @@ class Aria_Call(object):
 
 	def setmsg(self,msgstr=""):
 		self.MsgArea.setText(msgstr)
+		
 	def click(self):
 		self.statusbar.clearMessage()
 		if(self.state):

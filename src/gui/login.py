@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 #-*-python-2.7-
+try:
+    from PySide import QtCore, QtGui
+except:
+    from PyQt4 import QtCore, QtGui
 
-from PySide import QtCore, QtGui
 import auth
 
 class Login(QtGui.QDialog):

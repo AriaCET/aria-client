@@ -5,6 +5,12 @@
 import sys
 import pjsua
 import threading
+try:
+    from PySide import QtCore, QtGui
+    from PySide.QtCore import QThread
+except:
+    from PyQt4 import QtCore, QtGui
+    from PyQt4.QtCore import QThread
 
 
 class PhoneAccountCallback(pjsua.AccountCallback):
@@ -98,8 +104,12 @@ def getCallStatus(call):
         debugMessage ("NULL")
         return 0
 
-class Phone():
+
+
+class Phone(QThread):
     def __init__(self,port=0, bound_addr='', public_addr='',Sound_rate=44100):
+        super(Phone, self).__init__() 
+        self.exiting = False
         self.lib = pjsua.Lib()
         self.Sound_rate=Sound_rate
         self.media_cfg = pjsua.MediaConfig()
@@ -122,36 +132,55 @@ class Phone():
         except pjsua.Error, e:
             debugMessage ("Exception: " + str(e))
             self.lib.destroy()
-        return self.account.info().reg_status
+        self.signalStatus()
 
-    def printstatus(self,meth=debugMessage):
+    def signalStatus(self):
+        #print "hgfgfg"
+        status = self.account.info().reg_status
+        self.emit(QtCore.SIGNAL('regStatus(int )'),status)
+        print (status)
+
+    def printstatus(self):
         my_sip_uri = "sip:" + self.transport.info().host + \
             ":" + str(self.transport.info().port)
-        meth( "My SIP URI is"+ my_sip_uri)
-        meth("Registration status ="+str(self.account.info().reg_status)+ \
-            "(" + self.account.info().reg_reason+")")
+        msg = "SIP URI is"+ my_sip_uri
+        self.printMessage(msg)
+        msg = "Registration status ="+str(self.account.info().reg_status)+ \
+            "(" + self.account.info().reg_reason+")"
+        self.printMessage(msg)
 
-    def destroy(self):
+    def deregister(self):
         self.account.set_registration(False)
         self.lib.destroy()
         del self.lib
         debugMessage ("Bye..............")
+        self.signalStatus()
+        
 
-    def call(self,phoneno,domain='',msgfn=debugMessage,stfn=statechange):
+    def printMessage(self,msg,signal=True):
+        debugMessage (msg)
+        if signal:
+            self.emit(QtCore.SIGNAL('phoneMessage(const QString& )'),msg)
+
+    def statechanged(self,state):
+        self.emit(QtCore.SIGNAL('statechanged(int )'),state)
+
+    def call(self,phoneno,domain=''):
         try:
             if domain=='':
                 domain=self.domain
             uri="<sip:"+str(phoneno)+"@"+domain+">"
             debugMessage ("Making call to"+ str(uri))
-            self.callbackSetting = PhoneCallCallback(msgfn,stfn);
+            self.callbackSetting = PhoneCallCallback(self.printMessage,self.statechanged);
             lck = self.lib.auto_lock()
             current_call=self.account.make_call(uri,cb=self.callbackSetting)
             del lck
             return current_call
         except pjsua.Error, e:
-            debugMessage ("Exception: "+ str(e))
+            msg = "Exception: "+ str(e)
+            self.printMessage(msg)
             return
 
     def __del__(self):
-        self.destroy()
+        self.deregister()
     	super.__del__()
