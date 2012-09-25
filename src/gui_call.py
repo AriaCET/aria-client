@@ -100,8 +100,8 @@ class Aria_Call(object):
 		self.ph=None
 
 	def phone_setup(self):
-		self.ph=Phone(5080)
-		self.ph.register("127.0.0.1:5060","blaine")
+		self.ph=Phone(5082)
+		self.ph.register("127.0.0.1:5060","101","welcome")
 		self.ph.printstatus(self.setstatus)
 
 	def endcall(self,t):

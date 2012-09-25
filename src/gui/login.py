@@ -64,7 +64,6 @@ class Login(QtGui.QDialog):
 
     def login(self):
         password = self.passBox.text()
-        print password
         if auth.isvalid(password) :
             self.accept()
         self.passBox.setText("")
