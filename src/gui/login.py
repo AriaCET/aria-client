@@ -5,7 +5,7 @@ try:
 except:
     from PyQt4 import QtCore, QtGui
 
-import auth
+import config
 
 class Login(QtGui.QDialog):
     def __init__(self,parent = None):
@@ -64,6 +64,6 @@ class Login(QtGui.QDialog):
 
     def login(self):
         password = self.passBox.text()
-        if auth.isvalid(password) :
+        if config.auth(password) :
             self.accept()
         self.passBox.setText("")
