@@ -22,7 +22,7 @@ def init():
 		bindport = config.get('Phone','bindport')
 	except ConfigParser.NoSectionError as e:
 		print "No Config found, run `ariasetup` \n"
-		raise e
+		exit(0)
 	
 def getSpeakers():
 	config = ConfigParser.ConfigParser()
