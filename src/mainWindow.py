@@ -15,7 +15,7 @@ class MainWindow(QtGui.QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         self.speakerBtns = list()
-        self.selectedSpeaker = None
+        self.selectedSpeaker = list()
         config.init()
         login = Login(self)
         QtCore.QObject.connect(login, QtCore.SIGNAL("accepted()"),self.loginSucess)
@@ -119,10 +119,10 @@ class MainWindow(QtGui.QMainWindow):
 
     def speakerSelect(self,clear=True):
         btn = self.sender()
-        if self.selectedSpeaker != None:
-            self.selectedSpeaker.setChecked(False)
+        #if len(self.selectedSpeaker) != 0:
+        #    self.selectedSpeaker.setChecked(False)
         if btn.isChecked():
-            self.selectedSpeaker = btn
+            self.selectedSpeaker.append(btn)
             self.okBtn.setEnabled(True)
             self.cancelBtn.setEnabled(True)
             
@@ -133,40 +133,45 @@ class MainWindow(QtGui.QMainWindow):
                 self.statusbar.showMessage("Selected Speaker :"
                     +str(btn) ,0)
         else:
-            self.selectedSpeaker = None
-            self.okBtn.setEnabled(False)
-            self.cancelBtn.setEnabled(False)
-            self.statusbar.clear()
+            self.selectedSpeaker.remove(btn)
+            if len(self.selectedSpeaker) == 0:
+                self.okBtn.setEnabled(False)
+                self.cancelBtn.setEnabled(False)
+                self.statusbar.clear()
 
     def cancelAct(self):
         if self.cancelBtn.text() == "Cancel":
-            self.selectedSpeaker.setChecked(False)
-            self.selectedSpeaker = None
+            
+            for btn in self.selectedSpeaker:
+                self.selectedSpeaker.remove(btn)
+                btn.setChecked(False)
+
             self.okBtn.setEnabled(False)
             self.cancelBtn.setEnabled(False)
             self.statusbar.clear()
         if self.cancelBtn.text() == "End":
-            self.endcall(1)
+            self.endcalls()
             #self.okBtn.setEnabled(True)
             #self.cancelBtn.setText("Cancel")
             #self.scrollArea.setEnabled(True)
 
     def okAct(self):
-        number = self.selectedSpeaker.getNumber()
-        #print number
-        #TODO Call
         self.scrollArea.setEnabled(False)
         self.okBtn.setEnabled(False)
         self.cancelBtn.setText("End")
-        current_call = self.ph.call(number)
-        self.calllist.append(current_call)
+        for speaker in self.selectedSpeaker:
+            number = speaker.getNumber()
+            #print number
+            #TODO Call
+            current_call = self.ph.call(number)
+            self.calllist.append(current_call)
 
     def about(self):
         QtGui.QMessageBox.about(self, "About ARIA",
             "<p><b>Asterisk RadIo Architecture</b></p>"
             "<p>An public addressing system based on the Asterisk VoIP network</p>")
 
-    def endcall(self,t):
+    def callended(self,t):
         if t==0:
             try:
                 current_call=self.calllist.pop()
@@ -174,7 +179,13 @@ class MainWindow(QtGui.QMainWindow):
                 current_call = None
             except IndexError:
                 pass
-        if t==1:
+        if len(self.calllist) == 0:
+            self.okBtn.setEnabled(True)
+            self.cancelBtn.setText("Cancel")
+            self.scrollArea.setEnabled(True)
+    
+    def endcalls(self):
+        while True:
             try:
                 current_call=self.calllist.pop()
                 print(current_call.is_valid())
@@ -182,10 +193,8 @@ class MainWindow(QtGui.QMainWindow):
                 #self.statusbar.showMessage(str(current_call.info().state_text),1000)
             except pjsua.Error, e:
                 print ("e"+str(e))
-                #pass 
-            except IndexError ,e:
-                print ("e"+str(e))
-                #pass
+            except IndexError :
+                break
         self.okBtn.setEnabled(True)
         self.cancelBtn.setText("Cancel")
         self.scrollArea.setEnabled(True)
@@ -196,9 +205,9 @@ class MainWindow(QtGui.QMainWindow):
         self.ph = Phone(int(config.bindport))
         
         QtCore.QObject.connect(self.ph, QtCore.SIGNAL('phoneMessage(const QString& )'), self.setmsg)
-        QtCore.QObject.connect(self.ph, QtCore.SIGNAL('statechanged(int )'), self.endcall)
+        QtCore.QObject.connect(self.ph, QtCore.SIGNAL('statechanged(int )'), self.callended)
         QtCore.QObject.connect(self.ph, QtCore.SIGNAL('regStatus(int )') ,self.registationStatus)
-        
+        print config.domain
         self.ph.register(domain=config.domain,
             username=config.username, password=config.password)
 

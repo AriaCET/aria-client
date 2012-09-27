@@ -6,10 +6,11 @@ class PhoneCallCallback(CallCallback):
     """
     Class to receive event notification from Call objects. 
     """
-    def __init__(self,msgfn,stfn, call=None):
+    def __init__(self,msgfn,stfn,callid, call=None):
         CallCallback.__init__(self, call)
         self.msgfn = msgfn
         self.statefn = stfn
+        self.id = callid
 
     # Notification when call state has changed
     def on_state(self):
@@ -20,7 +21,7 @@ class PhoneCallCallback(CallCallback):
         self.msgfn (str(self.call.info().state_text))
         debugMessage ("last code ="+ str(self.call.info().last_code)) 
         if self.call.info().state == CallState.DISCONNECTED:
-            self.statefn(0)
+            self.statefn(self.id)
             try:
                  self.call.hangup()
             except pjsuaException, e:

@@ -61,7 +61,7 @@ def createConfig():
 	config.set('General', 'password',password)
 
 	config.add_section('Phone')
-	domain = getUserInput('Domain','127.0.0.0:5060')
+	domain = getUserInput('Domain','127.0.0.1:5060')
 	
 	username = getUserInput('username',NotNull=True)
 	password = getUserInput('password')
