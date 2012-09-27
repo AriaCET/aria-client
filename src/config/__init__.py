@@ -2,8 +2,12 @@
 # -*- coding: utf-8 -*-
 import ConfigParser
 import md5
+import os
 
-configFile = "config.ini"
+HOME = os.getenv("HOME")
+configDir = os.path.join(HOME, '.aria')
+configFile = os.path.join(configDir, 'config.ini')
+#configFile = "config.ini"
 domain   = ""
 username = ""
 password = ""
@@ -15,14 +19,13 @@ def init():
 	config = ConfigParser.ConfigParser()
 	config.read(configFile)
 	try:
-		passwordhash = config.get('General','password')
 		domain = config.get('Phone','domain')
 		username = config.get('Phone','username')
 		password = config.get('Phone','password')
 		bindport = config.get('Phone','bindport')
 	except ConfigParser.NoSectionError as e:
 		print "No Config found, run `ariasetup` \n"
-		exit(0)
+		raise e
 	
 def getSpeakers():
 	config = ConfigParser.ConfigParser()
@@ -82,6 +85,10 @@ def createConfig():
 
 
 	# Writing our configuration file to 'example.cfg'
+	try:
+		os.makedirs(configDir)
+	except OSError:
+		pass
 	with open(configFile, 'wb') as outfile:
 		config.write(outfile)
 
