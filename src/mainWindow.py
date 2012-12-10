@@ -141,11 +141,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def cancelAct(self):
         if self.cancelBtn.text() == "Cancel":
-            
-            for btn in self.selectedSpeaker:
-                self.selectedSpeaker.remove(btn)
-                btn.setChecked(False)
-
+            self.clearSelection()
             self.okBtn.setEnabled(False)
             self.cancelBtn.setEnabled(False)
             self.statusbar.clear()
@@ -154,6 +150,11 @@ class MainWindow(QtGui.QMainWindow):
             #self.okBtn.setEnabled(True)
             #self.cancelBtn.setText("Cancel")
             #self.scrollArea.setEnabled(True)
+
+    def clearSelection(self):
+        self.selectedSpeaker =list()
+        for btn in self.speakerBtns:
+            btn.setChecked(False)
 
     def okAct(self):
         self.scrollArea.setEnabled(False)
