@@ -9,6 +9,9 @@ except Exception, e:
 from login import Login
 import config as config
 import pjsua
+from speakerManagement import SpeakerManagement
+from passwordChange import passwordChange
+from configDialog import configDialog
 from phone import Phone
 
 class MainWindow(QtGui.QMainWindow):
@@ -16,7 +19,13 @@ class MainWindow(QtGui.QMainWindow):
         super(MainWindow, self).__init__()
         self.speakerBtns = list()
         self.selectedSpeaker = list()
-        config.init()
+        try:
+            config.init()
+        except Exception, e:
+            QtGui.QMessageBox.critical(self,"Configuration Error"," \n Run ariasetup")
+            self.close()
+            exit()
+            pass
         login = Login(self)
         QtCore.QObject.connect(login, QtCore.SIGNAL("accepted()"),self.loginSucess)
         QtCore.QObject.connect(login, QtCore.SIGNAL("reject()"),self.loginFailed)
@@ -60,8 +69,13 @@ class MainWindow(QtGui.QMainWindow):
 
         #self.speakerBtnLayout = QtGui.QVBoxLayout(self.scrollAreaWidgetContents)
         self.speakerBtnLayout = QtGui.QGridLayout(self.scrollAreaWidgetContents)
-        #set spaker buttons        
-        self.setSpeakerBtns(self.speakerBtnLayout)
+        #set spaker buttons
+        try:
+            self.setSpeakerBtns(self.speakerBtnLayout)
+        except Exception, e:
+            QtGui.QMessageBox.critical(self,"Configuration Error"," \n Run ariasetup")
+            self.close()
+            exit()
 
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.horizontalLayout.addWidget(self.scrollArea)
@@ -86,15 +100,26 @@ class MainWindow(QtGui.QMainWindow):
         self.menubar = QtGui.QMenuBar(self)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 678, 30))
         self.menuFile = QtGui.QMenu("&File",self.menubar)
+        self.menuSettings = QtGui.QMenu("Settings",self.menubar)
         self.menuHelp = QtGui.QMenu("&Help",self.menubar)
         self.setMenuBar(self.menubar)
         self.actionQuit = QtGui.QAction("E&xit", self, shortcut="Ctrl+Q",triggered=self.close)
         self.actionAbout = QtGui.QAction("&About", self, triggered=self.about)
 
+        self.actionSpeaker = QtGui.QAction("Speaker Management", self, triggered=self.speakerSettings)
+        self.actionPass = QtGui.QAction("Change Password", self, triggered=self.passSettings)
+        self.actionReg = QtGui.QAction("Registation Settings", self, triggered=self.regSettings)
+
         self.menuFile.addAction(self.actionQuit)
         self.menuHelp.addAction(self.actionAbout)
+
+        self.menuSettings.addAction(self.actionReg)
+        self.menuSettings.addAction(self.actionPass)
+        self.menuSettings.addAction(self.actionSpeaker)
+
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuHelp.menuAction())
+        self.menubar.addAction(self.menuSettings.menuAction())
 
 
         self.statusbar = QtGui.QStatusBar(self)
@@ -208,7 +233,6 @@ class MainWindow(QtGui.QMainWindow):
         QtCore.QObject.connect(self.ph, QtCore.SIGNAL('phoneMessage(const QString& )'), self.setmsg)
         QtCore.QObject.connect(self.ph, QtCore.SIGNAL('statechanged(int )'), self.callended)
         QtCore.QObject.connect(self.ph, QtCore.SIGNAL('regStatus(int )') ,self.registationStatus)
-        print config.domain
         self.ph.register(domain=config.domain,
             username=config.username, password=config.password)
 
@@ -227,6 +251,24 @@ class MainWindow(QtGui.QMainWindow):
             self.statusbar.message(message,time)
         except Exception, e:
             self.statusbar.showMessage(message,time)
+
+    def passSettings(self):
+        passwordDialog = passwordChange(self)
+        QtCore.QObject.connect(passwordDialog, QtCore.SIGNAL("accepted()"),self.settingsSaved) 
+
+
+    def speakerSettings(self):
+        speakerDialog = SpeakerManagement(self)
+        QtCore.QObject.connect(speakerDialog, QtCore.SIGNAL("accepted()"),self.settingsSaved) 
+
+    def regSettings(self):
+        configUi = configDialog(self)
+        QtCore.QObject.connect(configUi, QtCore.SIGNAL("accepted()"), self.settingsSaved)
+    
+    def settingsSaved(self):
+        QtGui.QMessageBox.information(self, "ARIA ","Registation Settings Saved \nRestart For Apply Changes")
+
+
     def __del__(self):
         self.ph.deregister()
 
