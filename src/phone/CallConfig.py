@@ -36,7 +36,7 @@ class PhoneCallCallback(CallCallback):
         if self.call.info().media_state == MediaState.ACTIVE:
             # Connect the call to sound device
             call_slot = self.call.info().conf_slot
-            Lib.instance().conf_connect(call_slot, 0)
+            Lib.instance().conf_connect(call_slot, 0)  #comment this for to avoid sound from speaker----->caller.
             Lib.instance().conf_connect(0, call_slot)
             debugMessage ("Media is now active")
         else:

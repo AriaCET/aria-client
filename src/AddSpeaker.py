@@ -27,23 +27,24 @@ class AddSpeaker(QtGui.QDialog):
         spacerItem1 = QtGui.QSpacerItem(20, 56, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         self.gridLayout.addItem(spacerItem1, 6, 0, 1, 1)
 
-        self.nameLabel= QtGui.QLabel("Name", self)
-        self.gridLayout.addWidget(self.nameLabel, 4, 0, 1, 1)
-
         self.buttonBox = QtGui.QDialogButtonBox(self)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
         self.buttonBox.addButton("Cancel", QtGui.QDialogButtonBox.RejectRole)
         self.buttonBox.addButton("Add", QtGui.QDialogButtonBox.AcceptRole)
         self.gridLayout.addWidget(self.buttonBox, 7, 0, 1, 2)
-        
-        self.numberLabel = QtGui.QLabel("Number", self)
-        self.gridLayout.addWidget(self.numberLabel, 2, 0, 1, 1)
-        
+
+        self.nameLabel= QtGui.QLabel("Name", self)
+        self.gridLayout.addWidget(self.nameLabel, 2, 0, 1, 1)
+
         self.nameBox = QtGui.QLineEdit(self)
         self.gridLayout.addWidget(self.nameBox, 2, 1, 1, 1)
         
+        self.numberLabel = QtGui.QLabel("Number", self)
+        self.gridLayout.addWidget(self.numberLabel, 4, 0, 1, 1)
+        
         self.numberBox = QtGui.QLineEdit(self)
         self.gridLayout.addWidget(self.numberBox, 4, 1, 1, 1)
+        
 
         self.mainLabel = QtGui.QLabel("Enter Details :\n", self)
         self.gridLayout.addWidget(self.mainLabel, 1, 0, 1, 2)
