@@ -1,0 +1,3 @@
+#! /bin/sh
+ARIA_HOME=src/
+/usr/bin/env python2 ${ARIA_HOME}/main.py "$@"

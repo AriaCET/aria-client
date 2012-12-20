@@ -2,7 +2,11 @@
 #-*-python-2.7-
 # -*- coding: utf-8 -*-
 
-from PySide import QtGui
+try:
+	from PySide import QtGui
+except Exception, e:
+	from PyQt4 import QtGui
+
 from mainWindow import MainWindow
 
 if __name__ == "__main__":

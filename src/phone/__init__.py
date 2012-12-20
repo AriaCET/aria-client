@@ -70,16 +70,18 @@ class Phone(QThread):
         if signal:
             self.emit(QtCore.SIGNAL('phoneMessage(const QString& )'),msg)
 
-    def statechanged(self,state):
-        self.emit(QtCore.SIGNAL('statechanged(int )'),state)
+    def statechanged(self,callid):
+        self.emit(QtCore.SIGNAL('statechanged(int )'),callid)
 
-    def call(self,phoneno,domain=''):
+    def call(self,phoneno,domain = '',callid = None):
         try:
             if domain=='':
                 domain=self.domain
+            if callid == None:
+                callid = phoneno
             uri="<sip:"+str(phoneno)+"@"+domain+">"
             debugMessage ("Making call to"+ str(uri))
-            self.callbackSetting = PhoneCallCallback(self.printMessage,self.statechanged);
+            self.callbackSetting = PhoneCallCallback(self.printMessage,self.statechanged,callid);
             lck = self.lib.auto_lock()
             current_call=self.account.make_call(uri,cb=self.callbackSetting)
             del lck

@@ -9,14 +9,23 @@ except Exception, e:
 from login import Login
 import config as config
 import pjsua
+from speakerManagement import SpeakerManagement
+from passwordChange import passwordChange
+from configDialog import configDialog
 from phone import Phone
 
 class MainWindow(QtGui.QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         self.speakerBtns = list()
-        self.selectedSpeaker = None
-        config.init()
+        self.selectedSpeaker = list()
+        try:
+            config.init()
+        except Exception, e:
+            QtGui.QMessageBox.critical(self,"Configuration Error"," \n Run ariasetup")
+            self.close()
+            exit()
+            pass
         login = Login(self)
         QtCore.QObject.connect(login, QtCore.SIGNAL("accepted()"),self.loginSucess)
         QtCore.QObject.connect(login, QtCore.SIGNAL("reject()"),self.loginFailed)
@@ -60,8 +69,13 @@ class MainWindow(QtGui.QMainWindow):
 
         #self.speakerBtnLayout = QtGui.QVBoxLayout(self.scrollAreaWidgetContents)
         self.speakerBtnLayout = QtGui.QGridLayout(self.scrollAreaWidgetContents)
-        #set spaker buttons        
-        self.setSpeakerBtns(self.speakerBtnLayout)
+        #set spaker buttons
+        try:
+            self.setSpeakerBtns(self.speakerBtnLayout)
+        except Exception, e:
+            QtGui.QMessageBox.critical(self,"Configuration Error"," \n Run ariasetup")
+            self.close()
+            exit()
 
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.horizontalLayout.addWidget(self.scrollArea)
@@ -86,15 +100,26 @@ class MainWindow(QtGui.QMainWindow):
         self.menubar = QtGui.QMenuBar(self)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 678, 30))
         self.menuFile = QtGui.QMenu("&File",self.menubar)
+        self.menuSettings = QtGui.QMenu("Settings",self.menubar)
         self.menuHelp = QtGui.QMenu("&Help",self.menubar)
         self.setMenuBar(self.menubar)
         self.actionQuit = QtGui.QAction("E&xit", self, shortcut="Ctrl+Q",triggered=self.close)
         self.actionAbout = QtGui.QAction("&About", self, triggered=self.about)
 
+        self.actionSpeaker = QtGui.QAction("Speaker Management", self, triggered=self.speakerSettings)
+        self.actionPass = QtGui.QAction("Change Password", self, triggered=self.passSettings)
+        self.actionReg = QtGui.QAction("Registation Settings", self, triggered=self.regSettings)
+
         self.menuFile.addAction(self.actionQuit)
         self.menuHelp.addAction(self.actionAbout)
+
+        self.menuSettings.addAction(self.actionReg)
+        self.menuSettings.addAction(self.actionPass)
+        self.menuSettings.addAction(self.actionSpeaker)
+
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuHelp.menuAction())
+        self.menubar.addAction(self.menuSettings.menuAction())
 
 
         self.statusbar = QtGui.QStatusBar(self)
@@ -119,10 +144,10 @@ class MainWindow(QtGui.QMainWindow):
 
     def speakerSelect(self,clear=True):
         btn = self.sender()
-        if self.selectedSpeaker != None:
-            self.selectedSpeaker.setChecked(False)
+        #if len(self.selectedSpeaker) != 0:
+        #    self.selectedSpeaker.setChecked(False)
         if btn.isChecked():
-            self.selectedSpeaker = btn
+            self.selectedSpeaker.append(btn)
             self.okBtn.setEnabled(True)
             self.cancelBtn.setEnabled(True)
             
@@ -133,40 +158,46 @@ class MainWindow(QtGui.QMainWindow):
                 self.statusbar.showMessage("Selected Speaker :"
                     +str(btn) ,0)
         else:
-            self.selectedSpeaker = None
-            self.okBtn.setEnabled(False)
-            self.cancelBtn.setEnabled(False)
-            self.statusbar.clear()
+            self.selectedSpeaker.remove(btn)
+            if len(self.selectedSpeaker) == 0:
+                self.okBtn.setEnabled(False)
+                self.cancelBtn.setEnabled(False)
+                self.statusbar.clear()
 
     def cancelAct(self):
         if self.cancelBtn.text() == "Cancel":
-            self.selectedSpeaker.setChecked(False)
-            self.selectedSpeaker = None
+            self.clearSelection()
             self.okBtn.setEnabled(False)
             self.cancelBtn.setEnabled(False)
             self.statusbar.clear()
         if self.cancelBtn.text() == "End":
-            self.endcall(1)
+            self.endcalls()
             #self.okBtn.setEnabled(True)
             #self.cancelBtn.setText("Cancel")
             #self.scrollArea.setEnabled(True)
 
+    def clearSelection(self):
+        self.selectedSpeaker =list()
+        for btn in self.speakerBtns:
+            btn.setChecked(False)
+
     def okAct(self):
-        number = self.selectedSpeaker.getNumber()
-        #print number
-        #TODO Call
         self.scrollArea.setEnabled(False)
         self.okBtn.setEnabled(False)
         self.cancelBtn.setText("End")
-        current_call = self.ph.call(number)
-        self.calllist.append(current_call)
+        for speaker in self.selectedSpeaker:
+            number = speaker.getNumber()
+            #print number
+            #TODO Call
+            current_call = self.ph.call(number)
+            self.calllist.append(current_call)
 
     def about(self):
         QtGui.QMessageBox.about(self, "About ARIA",
             "<p><b>Asterisk RadIo Architecture</b></p>"
             "<p>An public addressing system based on the Asterisk VoIP network</p>")
 
-    def endcall(self,t):
+    def callended(self,t):
         if t==0:
             try:
                 current_call=self.calllist.pop()
@@ -174,7 +205,13 @@ class MainWindow(QtGui.QMainWindow):
                 current_call = None
             except IndexError:
                 pass
-        if t==1:
+        if len(self.calllist) == 0:
+            self.okBtn.setEnabled(True)
+            self.cancelBtn.setText("Cancel")
+            self.scrollArea.setEnabled(True)
+    
+    def endcalls(self):
+        while True:
             try:
                 current_call=self.calllist.pop()
                 print(current_call.is_valid())
@@ -182,10 +219,8 @@ class MainWindow(QtGui.QMainWindow):
                 #self.statusbar.showMessage(str(current_call.info().state_text),1000)
             except pjsua.Error, e:
                 print ("e"+str(e))
-                #pass 
-            except IndexError ,e:
-                print ("e"+str(e))
-                #pass
+            except IndexError :
+                break
         self.okBtn.setEnabled(True)
         self.cancelBtn.setText("Cancel")
         self.scrollArea.setEnabled(True)
@@ -196,9 +231,8 @@ class MainWindow(QtGui.QMainWindow):
         self.ph = Phone(int(config.bindport))
         
         QtCore.QObject.connect(self.ph, QtCore.SIGNAL('phoneMessage(const QString& )'), self.setmsg)
-        QtCore.QObject.connect(self.ph, QtCore.SIGNAL('statechanged(int )'), self.endcall)
+        QtCore.QObject.connect(self.ph, QtCore.SIGNAL('statechanged(int )'), self.callended)
         QtCore.QObject.connect(self.ph, QtCore.SIGNAL('regStatus(int )') ,self.registationStatus)
-        
         self.ph.register(domain=config.domain,
             username=config.username, password=config.password)
 
@@ -217,6 +251,24 @@ class MainWindow(QtGui.QMainWindow):
             self.statusbar.message(message,time)
         except Exception, e:
             self.statusbar.showMessage(message,time)
+
+    def passSettings(self):
+        passwordDialog = passwordChange(self)
+        QtCore.QObject.connect(passwordDialog, QtCore.SIGNAL("accepted()"),self.settingsSaved) 
+
+
+    def speakerSettings(self):
+        speakerDialog = SpeakerManagement(self)
+        QtCore.QObject.connect(speakerDialog, QtCore.SIGNAL("accepted()"),self.settingsSaved) 
+
+    def regSettings(self):
+        configUi = configDialog(self)
+        QtCore.QObject.connect(configUi, QtCore.SIGNAL("accepted()"), self.settingsSaved)
+    
+    def settingsSaved(self):
+        QtGui.QMessageBox.information(self, "ARIA ","Registation Settings Saved \nRestart For Apply Changes")
+
+
     def __del__(self):
         self.ph.deregister()
 

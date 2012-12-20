@@ -11,6 +11,12 @@ class Login(QtGui.QDialog):
     def __init__(self,parent = None):
         QtGui.QDialog.__init__(self, parent, QtCore.Qt.WindowStaysOnTopHint)
         self.setupUi()
+        try:
+            config.auth("") # to check Password is in Config File
+        except Exception, e:
+            QtGui.QMessageBox.critical(self,"Configuration Error"," \n Run ariasetup")
+            self.close()
+            exit()
         self.show()
 
     def setupUi(self):

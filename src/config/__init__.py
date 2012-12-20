@@ -18,14 +18,11 @@ def init():
 	global domain, username, password, bindport
 	config = ConfigParser.ConfigParser()
 	config.read(configFile)
-	try:
-		domain = config.get('Phone','domain')
-		username = config.get('Phone','username')
-		password = config.get('Phone','password')
-		bindport = config.get('Phone','bindport')
-	except ConfigParser.NoSectionError as e:
-		print "No Config found, run `ariasetup` \n"
-		raise e
+	domain = config.get('Phone','domain')
+	username = config.get('Phone','username')
+	password = config.get('Phone','password')
+	bindport = config.get('Phone','bindport')
+	return config
 	
 def getSpeakers():
 	config = ConfigParser.ConfigParser()
@@ -61,7 +58,7 @@ def createConfig():
 	config.set('General', 'password',password)
 
 	config.add_section('Phone')
-	domain = getUserInput('Domain','127.0.0.0:5060')
+	domain = getUserInput('Domain','127.0.0.1:5060')
 	
 	username = getUserInput('username',NotNull=True)
 	password = getUserInput('password')
@@ -83,7 +80,9 @@ def createConfig():
 		config.set('Speakers','name['+str(i)+']', name)
 		config.set('Speakers','exten['+str(i)+']', number)
 
+	saveConfig(config)
 
+def saveConfig(config):
 	# Writing our configuration file to 'example.cfg'
 	try:
 		os.makedirs(configDir)
@@ -91,6 +90,7 @@ def createConfig():
 		pass
 	with open(configFile, 'wb') as outfile:
 		config.write(outfile)
+
 
 def getUserInput(msg,defaultvalue="",NotNull=False):
 	if NotNull:
@@ -105,3 +105,69 @@ def getUserInput(msg,defaultvalue="",NotNull=False):
 				return defaultvalue
 		else:
 			return userInput
+
+def setPhoneSettings(domain,username,password="",bindport="5080"):
+	config = ConfigParser.ConfigParser()
+	config.read(configFile)
+	try:
+		config.add_section('Phone')
+	except ConfigParser.DuplicateSectionError, e:
+		pass
+	finally:
+		config.set('Phone', 'domain',domain)
+		config.set('Phone', 'username', username)
+		config.set('Phone', 'password' ,password)
+		config.set('Phone', 'bindport' ,bindport)
+		saveConfig(config)
+
+def setPassword(password):
+	config = ConfigParser.ConfigParser()
+	config.read(configFile)
+	try:
+		config.add_section('General')
+	except ConfigParser.DuplicateSectionError, e:
+		pass	
+	pashash = md5.new()
+	pashash.update(password)
+	config.set('General', 'password',pashash.hexdigest())
+	saveConfig(config)
+
+def setSpeakers(speakers):
+	config = ConfigParser.ConfigParser()
+	config.read(configFile)
+	try:
+		config.add_section('Speakers')
+	except ConfigParser.DuplicateSectionError, e:
+		pass
+	count = len(speakers)
+	config.set('Speakers', 'count',count)
+	index = 0
+	for speaker in speakers:
+		name = speaker['Name']
+		number = speaker['Number']
+		config.set('Speakers','name['+str(index)+']', name)
+		config.set('Speakers','exten['+str(index)+']', number)
+		index = index + 1
+	saveConfig(config)
+
+def isBasicConfigOk():
+	config = ConfigParser.ConfigParser()
+	config.read(configFile)
+	try:
+		config.get('General', 'password') 
+		config.get('Phone', 'domain')
+		config.get('Phone', 'username')
+		config.get('Phone', 'password')
+		config.get('Phone', 'bindport')
+		config.get('Speakers', 'count')
+		return True
+	except ConfigParser.NoSectionError:
+		return False
+def isPassWordOk():
+	config = ConfigParser.ConfigParser()
+	config.read(configFile)
+	try:
+		config.get('General', 'password')
+		return True
+	except ConfigParser.NoSectionError:
+		return False
