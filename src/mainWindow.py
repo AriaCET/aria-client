@@ -97,11 +97,11 @@ class MainWindow(QtGui.QMainWindow):
         self.gridLayout.addLayout(self.mainVerticalLayout, 0, 0, 1, 1)
         self.setCentralWidget(self.centralwidget)
 
-        self.menubar = QtGui.QMenuBar(self)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 678, 30))
-        self.menuFile = QtGui.QMenu("&File",self.menubar)
+        self.menubar = QtGui.QMenuBar()
+        #self.menubar.setGeometry(QtCore.QRect(0, 0, 678, 30))
+        self.menuFile = QtGui.QMenu("File",self.menubar)
         self.menuSettings = QtGui.QMenu("Settings",self.menubar)
-        self.menuHelp = QtGui.QMenu("&Help",self.menubar)
+        self.menuHelp = QtGui.QMenu("Help",self.menubar)
         self.setMenuBar(self.menubar)
         self.actionQuit = QtGui.QAction("E&xit", self, shortcut="Ctrl+Q",triggered=self.close)
         self.actionAbout = QtGui.QAction("&About", self, triggered=self.about)
@@ -193,9 +193,8 @@ class MainWindow(QtGui.QMainWindow):
             self.calllist.append(current_call)
 
     def about(self):
-        QtGui.QMessageBox.about(self, "About ARIA",
-            "<p><b>Asterisk RadIo Architecture</b></p>"
-            "<p>An public addressing system based on the Asterisk VoIP network</p>")
+        from about import About
+        About(self)
 
     def callended(self,t):
         if t==0:
