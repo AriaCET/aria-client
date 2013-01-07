@@ -1,0 +1,35 @@
+pkgname=aria-client
+pkgver=20130107
+pkgrel=1
+pkgdesc="ARIA (Asterisk RadIo Archetecture) Client"
+arch=(i686 x86_64)
+url="http://abilng.github.com/aria_client"
+depends=(python2-pjsua python2-pyqt)
+makedepends=('git')
+license=('GPLv2')
+
+_gitroot="https://github.com/abilng/aria_client.git"
+_gitname="aria_client"
+
+build() {
+  cd "$srcdir"
+  msg "Connecting to GIT server...."
+
+#  if [ -d $_gitname ] ; then
+#    cd $_gitname && git pull origin
+#    msg "The local files are updated."
+#  else
+#    git clone $_gitroot $_gitname
+#  fi
+
+  msg "GIT checkout done or server timeout"
+  sed s_HOME=src/_HOME=/usr/share/aria-client/_ -i ${srcdir}/${_gitname-build}/aria
+}
+
+package() {
+	install -d ${pkgdir}/usr/share/aria-client/
+	cp -r ${srcdir}/${_gitname-build}/src/* ${pkgdir}/usr/share/aria-client/
+	rm -R ${pkgdir}/usr/share/aria-client/other
+	rm -R ${pkgdir}/usr/share/aria-client/ui_files
+	install --mode=755 -D ${srcdir}/${_gitname-build}/aria ${pkgdir}/usr/bin/aria-client
+}
