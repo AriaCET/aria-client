@@ -22,7 +22,7 @@ class MainWindow(QtGui.QMainWindow):
         try:
             config.init()
         except Exception, e:
-            QtGui.QMessageBox.critical(self,"Configuration Error"," \n Run ariasetup")
+            QtGui.QMessageBox.critical(self,"Configuration Error"," \nRun \"aria-client --setup\"")
             self.close()
             exit()
             pass
