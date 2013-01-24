@@ -6,6 +6,8 @@ function usage(){
     echo "install ARIA client                           "
 }
 
+CURRDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 if [ $# -gt 1 ] ; then
     usage
     exit 1
@@ -18,15 +20,14 @@ else
 fi
 
 echo "Starting..."
-
-sed s_HOME=src/_HOME=/usr/share/aria-client/_ -i aria
+sed s_HOME=src/_HOME=/usr/share/aria-client/_ -i ${CURRDIR}/aria
 echo "Creating Directory...."
 install -d ${DESTDIR}/usr/share/aria-client/ && \
 echo -e "\tCreated"
 
 echo "Copying files...."
-cp -r src/* ${DESTDIR}/usr/share/aria-client/ && \
+cp -r ${CURRDIR}/src/* ${DESTDIR}/usr/share/aria-client/ && \
 rm -R ${DESTDIR}/usr/share/aria-client/other && \
 rm -R ${DESTDIR}/usr/share/aria-client/ui_files && \
-install --mode=755 -D aria ${DESTDIR}/usr/bin/aria-client && \
+install --mode=755 -D ${CURRDIR}/aria ${DESTDIR}/usr/bin/aria-client && \
 echo -e "\tFinished"
