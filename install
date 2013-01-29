@@ -1,20 +1,28 @@
 #! /bin/sh
 
-function usage(){
+usage="\
+Usage: $0 [DESTDIR]
 
-    echo "Usage: $0 [DESTDIR]                           "
-    echo "install ARIA client                           "
-}
+install ARIA client
+if DESTDIR is given aria-client will be install into DESTDIR,
+else aria-client will be install into '/'
+"
 
+DATADIR="/usr/share/aria-client"
+BINDIR="/usr/bin"
 CURRDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 if [ $# -gt 1 ] ; then
-    usage
+    echo "$usage"
     exit 1
 fi
 
 if [ $# -eq 0 ] ; then
 	DESTDIR=""
+	if [ $UID -ne 0 ] ;then
+		echo "Error: you cannot perform this operation unless you are root"
+		exit 1
+	fi
 else
 	DESTDIR="$1"
 fi
@@ -26,8 +34,9 @@ install -d ${DESTDIR}/usr/share/aria-client/ && \
 echo -e "\tCreated"
 
 echo "Copying files...."
-cp -r ${CURRDIR}/src/* ${DESTDIR}/usr/share/aria-client/ && \
-rm -R ${DESTDIR}/usr/share/aria-client/other && \
-rm -R ${DESTDIR}/usr/share/aria-client/ui_files && \
-install --mode=755 -D ${CURRDIR}/aria ${DESTDIR}/usr/bin/aria-client && \
+cp -r ${CURRDIR}/src/* ${DESTDIR}${DATADIR}/ && \
+rm -R ${DESTDIR}${DATADIR}/other && \
+rm -R ${DESTDIR}${DATADIR}/ui_files && \
+install --mode=755 -D ${CURRDIR}/aria ${DESTDIR}${BINDIR}/aria-client && \
 echo -e "\tFinished"
+exit 0
