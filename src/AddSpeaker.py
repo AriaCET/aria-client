@@ -7,8 +7,16 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PySide import QtCore, QtGui
-from PySide.QtCore import QThread
+try:
+    from PySide import QtCore, QtGui
+except Exception, e:
+    from PyQt4 import QtCore, QtGui
+
+try:
+    from PySide.QtCore import QThread
+except Exception, e:
+    from PyQt4.QtCore import QThread
+
 
 class AddSpeaker(QtGui.QDialog):
     def __init__(self,parent = None):

@@ -4,7 +4,7 @@
 try:
 	from PySide import QtGui ,QtCore
 except Exception, e:
-	from PyQt4 import QtGui
+	from PyQt4 import QtGui, QtCore
 
 from speakerManagement import SpeakerManagement
 from passwordChange import passwordChange

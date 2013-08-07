@@ -7,7 +7,11 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PySide import QtCore, QtGui
+try:
+    from PySide import QtCore, QtGui
+except Exception, e:
+    from PyQt4 import QtCore, QtGui
+
 
 class configDialog(QtGui.QDialog):
     def __init__(self,parent = None,isContinue=False):

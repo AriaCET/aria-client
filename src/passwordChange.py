@@ -6,8 +6,11 @@
 #      by: pyside-uic 0.2.14 running on PySide 1.1.1
 #
 # WARNING! All changes made in this file will be lost!
+try:
+    from PySide import QtCore, QtGui
+except Exception, e:
+    from PyQt4 import QtCore, QtGui
 
-from PySide import QtCore, QtGui
 
 class passwordChange(QtGui.QDialog):
     def __init__(self,parent = None, firstTime=False, isContinue=False):
