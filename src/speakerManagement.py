@@ -66,7 +66,7 @@ class SpeakerManagement(QtGui.QDialog):
         QtCore.QObject.connect(popup, QtCore.SIGNAL('add(const QString& ,const QString& )'), self.addRow)
 
     def addRow(self, name, number):
-        if not number.isdigit():
+        if not str(number).isdigit():
             return
         if name == '' or number =='':
             return

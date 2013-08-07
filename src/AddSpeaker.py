@@ -63,8 +63,8 @@ class AddSpeaker(QtGui.QDialog):
         QtCore.QMetaObject.connectSlotsByName(self)
 
     def add(self):
-        number = self.numberBox.text().strip()
-        name = self.nameBox.text().strip()
+        number = str(self.numberBox.text()).strip()
+        name = str(self.nameBox.text()).strip()
         if name == '' :
             self.deleteNumErrorMsg()
             self.nameError = QtGui.QLabel("<font color=\"red\"> Name should not be blank</font>")
